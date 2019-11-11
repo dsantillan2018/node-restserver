@@ -7,9 +7,12 @@ const _ = require('underscore');
 // Importing of the model (User is with capital letter because it is standard)
 const User = require('../models/user');
 
+//Importing auth class
+const { verifyToken, verifyAdmin_Role } = require('../middlewares/auth');
+
 const app = express();
 
-app.get('/user', function(req, res) {
+app.get('/user', verifyToken, (req, res) => {
 
     let from = req.query.from || 0;
     from = Number(from);
@@ -39,7 +42,7 @@ app.get('/user', function(req, res) {
         });
 })
 
-app.post('/user', function(req, res) {
+app.post('/user', [verifyToken, verifyAdmin_Role], function(req, res) {
     let body = req.body;
     // Creating object schema user
     let user = new User({
@@ -65,7 +68,7 @@ app.post('/user', function(req, res) {
     });
 })
 
-app.put('/user/:id', function(req, res) {
+app.put('/user/:id', [verifyToken, verifyAdmin_Role], function(req, res) {
     let id = req.params.id;
     let body = _.pick(req.body, ['name', 'email', 'img', 'role', 'state']);
     User.findByIdAndUpdate(id, body, { new: true, runValidators: true }, (err, userDB) => {
@@ -83,7 +86,7 @@ app.put('/user/:id', function(req, res) {
     });
 })
 
-app.delete('/user/:id', function(req, res) {
+app.delete('/user/:id', [verifyToken, verifyAdmin_Role], function(req, res) {
     let id = req.params.id;
 
     // Method that erase completely a register
